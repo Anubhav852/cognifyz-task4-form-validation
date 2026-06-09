@@ -1,75 +1,555 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cognifyz Task 4 - Form Validation</title>
-  <link rel="stylesheet" href="css/style.css" />
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CORE_SYSTEM | Auth</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "outline": "#747878",
+        "background": "#f8f9fa",
+        "secondary": "#585f6c",
+        "on-surface-variant": "#444748",
+        "error-container": "#ffdad6",
+        "on-error-container": "#93000a",
+        "primary-container": "#1c1b1b",
+        "surface-variant": "#e1e3e4",
+        "outline-variant": "#c4c7c7",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#f3f4f5",
+        "surface-container-high": "#e7e8e9",
+        "surface-container": "#edeeef",
+        "on-background": "#191c1d",
+        "surface-container-highest": "#e1e3e4",
+        "primary-fixed-dim": "#c8c6c5",
+        "on-primary": "#ffffff",
+        "on-surface": "#191c1d",
+        "secondary-container": "#dce2f3",
+        "on-secondary-container": "#5e6572",
+        "primary": "#000000",
+        "primary-fixed": "#e5e2e1",
+        "surface-dim": "#d9dadb",
+        "on-primary-container": "#858383",
+        "error": "#ba1a1a",
+        "surface-bright": "#f8f9fa",
+        "surface": "#f8f9fa"
+      },
+      borderRadius: {
+        "DEFAULT": "0.125rem",
+        "lg": "0.25rem",
+        "xl": "0.5rem",
+        "full": "0.75rem"
+      },
+      spacing: {
+        "base": "8px",
+        "container-max": "1280px",
+        "md": "24px",
+        "xl": "80px",
+        "xs": "4px",
+        "lg": "48px",
+        "gutter": "24px",
+        "sm": "12px"
+      },
+      fontFamily: {
+        "headline-lg": ["Hanken Grotesk"],
+        "body-md": ["Inter"],
+        "display-lg": ["Hanken Grotesk"],
+        "headline-md": ["Hanken Grotesk"],
+        "label-sm": ["JetBrains Mono"]
+      },
+      fontSize: {
+        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "600"}],
+        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+        "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}]
+      }
+    }
+  }
+}
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+  .air-shadow { box-shadow: 0 2px 4px rgba(0,0,0,0.02), 0 10px 24px rgba(0,0,0,0.04); }
+  .tonal-layering { background-color: #ffffff; border: 1px solid rgba(0,0,0,0.05); }
+  input:focus { outline: none !important; border-color: #121212 !important; box-shadow: none !important; }
+  .glass-header { backdrop-filter: blur(12px); background: rgba(248,249,250,0.7); }
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #e1e3e4; border-radius: 10px; }
+  body { min-height: 100dvh; }
+  .strength-bar-inner { height: 2px; transition: width 0.4s ease, background 0.4s ease; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .user-card-item { transition: transform 0.3s ease, opacity 0.3s ease; }
+</style>
 </head>
-<body>
+<body class="bg-background text-on-background font-body-md flex flex-col">
 
-  <nav>
-    <span class="logo">Cognifyz Task 4</span>
-    <div class="nav-links">
-      <a href="#register">Register</a>
-      <a href="#login">Login</a>
-      <a href="#dashboard">Dashboard</a>
+<!-- Loading Bar -->
+<div class="fixed top-0 left-0 h-[2px] bg-primary transition-all duration-300 w-0 z-[100]" id="loadingBar"></div>
+
+<!-- Header -->
+<header class="w-full top-0 sticky glass-header z-50 border-b border-outline-variant/10">
+  <div class="flex justify-between items-center px-gutter py-sm max-w-container-max mx-auto">
+    <div class="flex items-center gap-sm cursor-pointer" onclick="navigate('register')">
+      <span class="material-symbols-outlined text-primary">grid_view</span>
+      <span class="font-headline-md text-headline-md font-bold tracking-tighter text-primary">CORE_SYSTEM</span>
+    </div>
+    <nav class="hidden md:flex items-center gap-xs" id="desktopNav">
+      <button onclick="navigate('register')" data-page="register" class="nav-btn font-label-sm text-label-sm uppercase tracking-widest px-sm py-xs rounded text-outline hover:text-primary transition-colors">Register</button>
+      <button onclick="navigate('login')" data-page="login" class="nav-btn font-label-sm text-label-sm uppercase tracking-widest px-sm py-xs rounded text-outline hover:text-primary transition-colors">Login</button>
+      <button onclick="navigate('dashboard')" data-page="dashboard" class="nav-btn font-label-sm text-label-sm uppercase tracking-widest px-sm py-xs rounded text-outline hover:text-primary transition-colors">Dashboard</button>
+    </nav>
+    <div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant/20">
+      <span class="material-symbols-outlined text-outline text-sm" id="headerUserIcon">person</span>
+    </div>
+  </div>
+</header>
+
+<!-- ───────────── REGISTER PAGE ───────────── -->
+<div id="page-register" class="page active">
+  <main class="min-h-[calc(100vh-140px)] flex flex-col justify-center px-gutter py-xl">
+    <div class="max-w-md mx-auto w-full space-y-lg">
+      <div class="space-y-sm">
+        <h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">Create Account</h1>
+        <p class="font-body-md text-on-surface-variant max-w-[280px]">Enter your credentials to access the architectural interface.</p>
+      </div>
+      <div class="tonal-layering air-shadow p-lg rounded-xl space-y-md">
+        <div class="space-y-xs">
+          <label class="font-label-sm text-label-sm uppercase text-outline block" id="lbl-reg-username">Username</label>
+          <input id="reg-username" type="text" placeholder="ARCHITECT_01" class="w-full px-base py-sm bg-white border border-outline-variant/30 rounded focus:border-primary transition-all font-body-md placeholder:text-outline-variant/60"/>
+          <span class="font-label-sm text-label-sm text-error hidden" id="err-username"></span>
+        </div>
+        <div class="space-y-xs">
+          <label class="font-label-sm text-label-sm uppercase text-outline block" id="lbl-reg-email">Email</label>
+          <input id="reg-email" type="email" placeholder="authority@system.io" class="w-full px-base py-sm bg-white border border-outline-variant/30 rounded focus:border-primary transition-all font-body-md placeholder:text-outline-variant/60"/>
+          <span class="font-label-sm text-label-sm text-error hidden" id="err-email"></span>
+        </div>
+        <div class="space-y-xs">
+          <label class="font-label-sm text-label-sm uppercase text-outline block" id="lbl-reg-password">Password</label>
+          <div class="relative">
+            <input id="reg-password" type="password" placeholder="••••••••" class="w-full px-base py-sm bg-white border border-outline-variant/30 rounded focus:border-primary transition-all font-body-md placeholder:text-outline-variant/60"/>
+            <span class="material-symbols-outlined absolute right-base top-1/2 -translate-y-1/2 text-outline-variant cursor-pointer hover:text-primary" id="togglePass1">visibility_off</span>
+          </div>
+          <div class="w-full bg-surface-container-low h-[2px] rounded-full overflow-hidden">
+            <div class="strength-bar-inner bg-primary w-0" id="strengthFill"></div>
+          </div>
+          <span class="font-label-sm text-label-sm text-outline" id="strengthText"></span>
+          <span class="font-label-sm text-label-sm text-error hidden" id="err-password"></span>
+        </div>
+        <div class="space-y-xs">
+          <label class="font-label-sm text-label-sm uppercase text-outline block" id="lbl-reg-confirm">Confirm Password</label>
+          <div class="relative">
+            <input id="reg-confirm" type="password" placeholder="••••••••" class="w-full px-base py-sm bg-white border border-outline-variant/30 rounded focus:border-primary transition-all font-body-md placeholder:text-outline-variant/60"/>
+            <span class="material-symbols-outlined absolute right-base top-1/2 -translate-y-1/2 text-outline-variant cursor-pointer hover:text-primary" id="togglePass2">visibility_off</span>
+          </div>
+          <span class="font-label-sm text-label-sm text-error hidden" id="err-confirm"></span>
+        </div>
+        <div class="flex items-start gap-sm py-xs">
+          <input id="terms" type="checkbox" class="mt-1 rounded-sm border-outline-variant/50 text-primary focus:ring-0"/>
+          <label for="terms" class="font-label-sm text-label-sm text-on-surface-variant leading-relaxed">
+            I ACCEPT THE <span class="text-primary cursor-pointer hover:underline">SECURITY PROTOCOL</span> AND DATA GOVERNANCE TERMS.
+          </label>
+        </div>
+        <div id="reg-success" class="hidden font-label-sm text-label-sm text-green-700 bg-green-50 border border-green-200/50 rounded px-base py-sm"></div>
+        <button onclick="handleRegister()" class="w-full bg-primary text-white py-base font-label-sm text-label-sm uppercase tracking-[0.2em] rounded-sm hover:opacity-90 active:scale-[0.98] transition-all air-shadow flex items-center justify-center gap-base">
+          Register
+          <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+        </button>
+      </div>
+      <div class="pt-md border-t border-outline-variant/10 text-center">
+        <p class="font-body-md text-on-surface-variant">Already authenticated? <button onclick="navigate('login')" class="text-primary font-medium hover:underline ml-1">Login</button></p>
+      </div>
+    </div>
+    <div class="fixed -bottom-20 -right-20 w-64 h-64 opacity-5 pointer-events-none">
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path d="M47.7,-62.4C60.9,-54.6,69.9,-38.7,74.3,-21.8C78.7,-4.9,78.5,13.1,72.4,29.3C66.3,45.5,54.3,59.9,39.3,67.8C24.3,75.7,6.4,77.1,-11.5,74.1C-29.4,71.1,-47.4,63.7,-60.1,50.7C-72.7,37.7,-80,19.1,-79.8,0.1C-79.6,-18.9,-71.9,-38.3,-58.5,-46C-45.1,-53.7,-25.9,-49.7,-7.1,-41.4C11.7,-33.1,23.3,-20.5,34.5,-70.1Z" fill="#000000" transform="translate(100 100)"></path></svg>
+    </div>
+  </main>
+  <footer class="w-full border-t border-outline-variant/10 bg-surface">
+    <div class="max-w-container-max mx-auto px-gutter py-lg flex flex-col md:flex-row justify-between items-center gap-base">
+      <span class="font-label-sm text-label-sm uppercase tracking-widest text-outline">© 2024 ARCHITECTURAL MINIMALISM. ALL RIGHTS RESERVED.</span>
+      <div class="flex gap-md">
+        <a class="font-label-sm text-label-sm uppercase tracking-widest text-outline hover:text-primary transition-colors" href="#">Security Protocol</a>
+        <a class="font-label-sm text-label-sm uppercase tracking-widest text-outline hover:text-primary transition-colors" href="#">Legal</a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ───────────── LOGIN PAGE ───────────── -->
+<div id="page-login" class="page">
+  <main class="flex-grow flex items-center justify-center px-gutter py-xl">
+    <div class="w-full max-w-sm">
+      <div class="mb-lg flex flex-col items-center text-center">
+        <div class="w-16 h-16 bg-surface-container-high rounded-full flex items-center justify-center mb-md border border-outline-variant/20">
+          <span class="material-symbols-outlined text-primary text-[32px]">security</span>
+        </div>
+        <h1 class="font-headline-lg text-headline-lg text-primary tracking-tight mb-xs">Welcome Back</h1>
+        <p class="font-body-md text-on-surface-variant opacity-70">Authenticated access required</p>
+      </div>
+      <div class="tonal-layering air-shadow p-lg rounded-xl space-y-md">
+        <div class="space-y-xs">
+          <label class="font-label-sm text-label-sm text-outline uppercase block" id="lbl-login-email">User Identifier</label>
+          <input id="login-email" type="email" placeholder="name@system.io" class="w-full h-12 px-md font-body-md bg-white border border-outline-variant/30 rounded-lg transition-all placeholder:text-outline/40"/>
+          <span class="font-label-sm text-label-sm text-error hidden" id="err-login-email"></span>
+        </div>
+        <div class="space-y-xs">
+          <div class="flex justify-between items-end">
+            <label class="font-label-sm text-label-sm text-outline uppercase block" id="lbl-login-password">Access Key</label>
+            <a class="font-label-sm text-label-sm text-primary-fixed-dim hover:text-primary transition-colors mb-[2px]" href="#">Reset</a>
+          </div>
+          <div class="relative">
+            <input id="login-password" type="password" placeholder="••••••••" class="w-full h-12 px-md font-body-md bg-white border border-outline-variant/30 rounded-lg transition-all placeholder:text-outline/40"/>
+            <span class="material-symbols-outlined absolute right-base top-1/2 -translate-y-1/2 text-outline-variant cursor-pointer hover:text-primary" id="toggleLoginPass">visibility_off</span>
+          </div>
+          <span class="font-label-sm text-label-sm text-error hidden" id="err-login-password"></span>
+        </div>
+        <div id="login-success" class="hidden font-label-sm text-label-sm text-green-700 bg-green-50 border border-green-200/50 rounded px-base py-sm"></div>
+        <div class="pt-md">
+          <button onclick="handleLogin()" class="w-full h-14 bg-primary text-on-primary font-body-md rounded-lg hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-base">
+            <span>Execute Login</span>
+            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          </button>
+        </div>
+        <div class="mt-lg pt-md border-t border-outline-variant/10">
+          <div class="flex items-center gap-base mb-md">
+            <div class="h-[1px] flex-grow bg-outline-variant/20"></div>
+            <span class="font-label-sm text-label-sm text-outline/50 uppercase">Security Nodes</span>
+            <div class="h-[1px] flex-grow bg-outline-variant/20"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-sm">
+            <button class="flex items-center justify-center h-12 rounded-lg border border-outline-variant/20 bg-surface-container-low hover:bg-surface-container-high transition-colors">
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant">fingerprint</span>
+            </button>
+            <button class="flex items-center justify-center h-12 rounded-lg border border-outline-variant/20 bg-surface-container-low hover:bg-surface-container-high transition-colors">
+              <span class="material-symbols-outlined text-[20px] text-on-surface-variant">face</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="mt-lg text-center">
+        <p class="font-label-sm text-label-sm text-outline uppercase tracking-widest leading-loose">
+          Unauthorized access is strictly monitored.<br/>Status: Secure
+        </p>
+      </div>
+      <div class="mt-md text-center">
+        <p class="font-body-md text-on-surface-variant">No account? <button onclick="navigate('register')" class="text-primary font-medium hover:underline ml-1">Register</button></p>
+      </div>
+    </div>
+  </main>
+  <footer class="w-full border-t border-outline-variant/10 bg-surface">
+    <div class="max-w-container-max mx-auto px-gutter py-lg flex flex-col md:flex-row justify-between items-center gap-base">
+      <span class="font-label-sm text-label-sm uppercase tracking-widest text-outline">© 2024 ARCHITECTURAL MINIMALISM. ALL RIGHTS RESERVED.</span>
+      <div class="flex gap-md">
+        <a class="font-label-sm text-label-sm uppercase tracking-widest text-outline hover:text-primary transition-colors" href="#">Security Protocol</a>
+        <a class="font-label-sm text-label-sm uppercase tracking-widest text-outline hover:text-primary transition-colors" href="#">Legal</a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ───────────── DASHBOARD PAGE ───────────── -->
+<div id="page-dashboard" class="page">
+  <nav class="hidden md:flex flex-col h-full py-md w-64 fixed left-0 top-[57px] bg-white border-r border-outline-variant/20 z-40">
+    <div class="px-md py-lg flex flex-col gap-base border-b border-outline-variant/10 mb-md">
+      <div class="flex items-center gap-sm">
+        <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+          <span class="material-symbols-outlined text-white">admin_panel_settings</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-headline-md font-black text-primary leading-tight" id="sidebarUsername">Principal Admin</span>
+          <span class="font-label-sm text-label-sm text-outline">v2.4.0</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto custom-scrollbar">
+      <a class="bg-secondary-container text-on-secondary-container rounded-lg mx-2 my-1 flex items-center gap-4 px-4 py-3 font-label-sm text-label-sm" href="#">
+        <span class="material-symbols-outlined">dashboard</span> Dashboard
+      </a>
+      <a class="text-on-surface-variant mx-2 my-1 flex items-center gap-4 px-4 py-3 font-label-sm text-label-sm hover:bg-surface-container-low transition-all" href="#">
+        <span class="material-symbols-outlined">group</span> Directory
+      </a>
+      <a class="text-on-surface-variant mx-2 my-1 flex items-center gap-4 px-4 py-3 font-label-sm text-label-sm hover:bg-surface-container-low transition-all" href="#">
+        <span class="material-symbols-outlined">security</span> Permissions
+      </a>
+      <a class="text-on-surface-variant mx-2 my-1 flex items-center gap-4 px-4 py-3 font-label-sm text-label-sm hover:bg-surface-container-low transition-all" href="#">
+        <span class="material-symbols-outlined">history</span> System Logs
+      </a>
+      <button onclick="handleLogout()" class="w-full text-error mx-2 my-1 flex items-center gap-4 px-4 py-3 font-label-sm text-label-sm hover:bg-error-container/30 transition-all rounded-lg">
+        <span class="material-symbols-outlined">logout</span> Logout
+      </button>
     </div>
   </nav>
 
-  <!-- REGISTER PAGE -->
-  <div id="register" class="page">
-    <h2>Create Account</h2>
-    <div class="form-group">
-      <label>Username</label>
-      <input type="text" id="reg-username" placeholder="Enter username" />
-      <span class="error" id="err-username"></span>
+  <main class="min-h-screen px-gutter pb-xl pt-md max-w-container-max mx-auto md:pl-[calc(256px+24px)]">
+    <div class="mb-xl">
+      <div class="flex flex-col gap-xs">
+        <span class="font-label-sm text-label-sm uppercase tracking-widest text-outline">System Overview</span>
+        <h1 class="font-headline-lg text-headline-lg text-primary">Dashboard</h1>
+        <p class="font-body-md text-on-surface-variant" id="dashWelcome">Please log in to continue.</p>
+      </div>
     </div>
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" id="reg-email" placeholder="Enter email" />
-      <span class="error" id="err-email"></span>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-base mb-xl">
+      <div class="bg-white air-shadow p-md rounded-xl border border-black/5 flex flex-col gap-sm">
+        <span class="font-label-sm text-label-sm text-outline uppercase tracking-widest">Registered Users</span>
+        <div class="flex items-end gap-xs">
+          <span class="font-display-lg text-display-lg text-primary" id="metricTotal">0</span>
+        </div>
+        <div class="w-full bg-surface-container-low h-0.5 mt-auto">
+          <div class="bg-primary h-full" id="metricTotalBar" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="bg-white air-shadow p-md rounded-xl border border-black/5 flex flex-col gap-sm">
+        <span class="font-label-sm text-label-sm text-outline uppercase tracking-widest">Active Session</span>
+        <div class="flex items-end gap-xs">
+          <span class="font-display-lg text-display-lg text-primary" id="metricSession">—</span>
+        </div>
+        <div class="w-full bg-surface-container-low h-0.5 mt-auto">
+          <div class="bg-primary h-full w-full"></div>
+        </div>
+      </div>
+      <div class="bg-white air-shadow p-md rounded-xl border border-black/5 flex flex-col gap-sm">
+        <span class="font-label-sm text-label-sm text-outline uppercase tracking-widest">System Status</span>
+        <div class="flex items-end gap-xs">
+          <span class="font-display-lg text-display-lg text-primary">OK</span>
+          <span class="text-green-600 font-label-sm text-label-sm mb-2">Nominal</span>
+        </div>
+        <div class="w-full bg-surface-container-low h-0.5 mt-auto">
+          <div class="bg-primary h-full w-full"></div>
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="reg-password" placeholder="Enter password" />
-      <div class="strength-bar"><div id="strength-fill"></div></div>
-      <span id="strength-text"></span>
-      <span class="error" id="err-password"></span>
-    </div>
-    <div class="form-group">
-      <label>Confirm Password</label>
-      <input type="password" id="reg-confirm" placeholder="Confirm password" />
-      <span class="error" id="err-confirm"></span>
-    </div>
-    <button id="reg-btn">Register</button>
-    <div id="register-success" class="success hidden"></div>
-  </div>
+    <section class="flex flex-col gap-md">
+      <div class="flex justify-between items-end border-b border-outline-variant/10 pb-sm">
+        <h2 class="font-headline-md text-headline-md text-primary">Registered Users</h2>
+        <span class="font-label-sm text-label-sm text-outline" id="userCount">Showing 0 entries</span>
+      </div>
+      <div class="flex flex-col gap-base" id="userList"></div>
+      <div id="notLoggedMsg" class="font-label-sm text-label-sm text-outline uppercase tracking-widest text-center py-lg border border-dashed border-outline-variant/20 rounded-xl">
+        Authentication required to view directory.
+      </div>
+      <button onclick="navigate('register')" class="w-full py-lg border-2 border-dashed border-outline-variant/20 rounded-xl flex flex-col items-center justify-center gap-sm text-outline hover:border-primary/20 hover:text-primary transition-all duration-300">
+        <span class="material-symbols-outlined text-[32px]">person_add</span>
+        <span class="font-label-sm text-label-sm uppercase tracking-widest">Register New Entity</span>
+      </button>
+    </section>
+    <section class="mt-xl relative h-48 rounded-xl overflow-hidden air-shadow border border-black/5 bg-surface-container-high">
+      <div class="relative z-10 p-lg flex flex-col justify-end h-full">
+        <span class="font-label-sm text-label-sm text-outline uppercase tracking-[0.2em]">Neural Processing</span>
+        <h3 class="font-headline-md text-headline-md text-primary">System Integrity: Nominal</h3>
+      </div>
+    </section>
+  </main>
 
-  <!-- LOGIN PAGE -->
-  <div id="login" class="page hidden">
-    <h2>Welcome Back</h2>
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" id="login-email" placeholder="Enter email" />
-      <span class="error" id="err-login-email"></span>
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="login-password" placeholder="Enter password" />
-      <span class="error" id="err-login-password"></span>
-    </div>
-    <button id="login-btn">Login</button>
-    <div id="login-success" class="success hidden"></div>
-  </div>
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 glass-header border-t border-outline-variant/10 z-50 px-gutter py-base flex justify-around items-center">
+    <button onclick="navigate('dashboard')" class="flex flex-col items-center gap-xs text-primary">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">dashboard</span>
+      <span class="font-label-sm text-[10px] uppercase">Dash</span>
+    </button>
+    <button onclick="navigate('register')" class="flex flex-col items-center gap-xs text-outline">
+      <span class="material-symbols-outlined">person_add</span>
+      <span class="font-label-sm text-[10px] uppercase">Register</span>
+    </button>
+    <button onclick="navigate('login')" class="flex flex-col items-center gap-xs text-outline">
+      <span class="material-symbols-outlined">login</span>
+      <span class="font-label-sm text-[10px] uppercase">Login</span>
+    </button>
+    <button onclick="handleLogout()" class="flex flex-col items-center gap-xs text-outline">
+      <span class="material-symbols-outlined">logout</span>
+      <span class="font-label-sm text-[10px] uppercase">Logout</span>
+    </button>
+  </nav>
 
-  <!-- DASHBOARD PAGE -->
-  <div id="dashboard" class="page hidden">
-    <h2>Dashboard</h2>
-    <p id="dash-welcome" class="dash-msg">Please log in first.</p>
-    <div id="user-list"></div>
-  </div>
+  <footer class="w-full border-t border-outline-variant/10 bg-surface md:pl-64 pb-16 md:pb-0">
+    <div class="max-w-container-max mx-auto px-gutter py-lg flex flex-col md:flex-row justify-between items-center gap-base">
+      <span class="font-label-sm text-label-sm uppercase tracking-widest text-outline">© 2024 ARCHITECTURAL MINIMALISM. ALL RIGHTS RESERVED.</span>
+      <div class="flex gap-md">
+        <a class="font-label-sm text-label-sm uppercase tracking-widest text-outline hover:text-primary transition-colors" href="#">Security Protocol</a>
+        <a class="font-label-sm text-label-sm uppercase tracking-widest text-outline hover:text-primary transition-colors" href="#">Legal</a>
+      </div>
+    </div>
+  </footer>
+</div>
 
-  <script src="js/main.js"></script>
+<script>
+const users = [];
+let loggedInUser = null;
+
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.toggle('text-primary', b.dataset.page === page);
+    b.classList.toggle('text-outline', b.dataset.page !== page);
+  });
+  if (page === 'dashboard') renderDashboard();
+  window.scrollTo(0, 0);
+  animateLoadingBar();
+}
+
+function animateLoadingBar() {
+  const bar = document.getElementById('loadingBar');
+  bar.style.width = '40%';
+  setTimeout(() => { bar.style.width = '100%'; }, 300);
+  setTimeout(() => { bar.style.opacity = '0'; }, 700);
+  setTimeout(() => { bar.style.width = '0'; bar.style.opacity = '1'; }, 900);
+}
+
+document.getElementById('reg-password').addEventListener('input', function() {
+  const val = this.value;
+  const fill = document.getElementById('strengthFill');
+  const text = document.getElementById('strengthText');
+  let score = 0;
+  if (val.length >= 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const levels = [
+    { label: '', width: '0%', color: '#e1e3e4' },
+    { label: 'WEAK', width: '25%', color: '#ba1a1a' },
+    { label: 'FAIR', width: '50%', color: '#b8860b' },
+    { label: 'GOOD', width: '75%', color: '#444748' },
+    { label: 'STRONG', width: '100%', color: '#000000' },
+  ];
+  const l = levels[score];
+  fill.style.width = l.width;
+  fill.style.background = l.color;
+  text.textContent = l.label;
+  text.style.color = l.color;
+});
+
+function toggleVisibility(inputId, iconEl) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') { input.type = 'text'; iconEl.textContent = 'visibility'; }
+  else { input.type = 'password'; iconEl.textContent = 'visibility_off'; }
+}
+document.getElementById('togglePass1').addEventListener('click', function() { toggleVisibility('reg-password', this); });
+document.getElementById('togglePass2').addEventListener('click', function() { toggleVisibility('reg-confirm', this); });
+document.getElementById('toggleLoginPass').addEventListener('click', function() { toggleVisibility('login-password', this); });
+
+document.querySelectorAll('input').forEach(input => {
+  const label = input.closest('.space-y-xs')?.querySelector('label');
+  if (!label) return;
+  input.addEventListener('focus', () => label.classList.add('text-primary'));
+  input.addEventListener('blur', () => label.classList.remove('text-primary'));
+});
+
+function handleRegister() {
+  clearErrors();
+  const username = document.getElementById('reg-username').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const confirm = document.getElementById('reg-confirm').value;
+  const terms = document.getElementById('terms').checked;
+  let valid = true;
+  if (username.length < 3) { showErr('err-username', 'Username must be at least 3 characters.'); valid = false; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('err-email', 'Enter a valid email address.'); valid = false; }
+  else if (users.find(u => u.email === email)) { showErr('err-email', 'Email already registered.'); valid = false; }
+  if (password.length < 8) { showErr('err-password', 'Minimum 8 characters required.'); valid = false; }
+  else if (!/[A-Z]/.test(password)) { showErr('err-password', 'Must include one uppercase letter.'); valid = false; }
+  else if (!/[0-9]/.test(password)) { showErr('err-password', 'Must include one number.'); valid = false; }
+  if (password !== confirm) { showErr('err-confirm', 'Passwords do not match.'); valid = false; }
+  if (!terms) { showErr('err-confirm', 'You must accept the security protocol.'); valid = false; }
+  if (!valid) return;
+  users.push({ username, email, password });
+  const s = document.getElementById('reg-success');
+  s.textContent = '✓ ENTITY REGISTERED — ' + username.toUpperCase();
+  s.classList.remove('hidden');
+  animateLoadingBar();
+  setTimeout(() => { s.classList.add('hidden'); navigate('login'); }, 1800);
+}
+
+function handleLogin() {
+  clearErrors();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  let valid = true;
+  if (!email) { showErr('err-login-email', 'Identifier required.'); valid = false; }
+  if (!password) { showErr('err-login-password', 'Access key required.'); valid = false; }
+  if (!valid) return;
+  const user = users.find(u => u.email === email && u.password === password);
+  if (!user) { showErr('err-login-password', 'Invalid credentials. Access denied.'); return; }
+  loggedInUser = user;
+  document.getElementById('sidebarUsername').textContent = user.username;
+  const s = document.getElementById('login-success');
+  s.textContent = '✓ ACCESS GRANTED — ' + user.username.toUpperCase();
+  s.classList.remove('hidden');
+  animateLoadingBar();
+  setTimeout(() => { s.classList.add('hidden'); navigate('dashboard'); }, 1500);
+}
+
+function handleLogout() {
+  loggedInUser = null;
+  navigate('login');
+}
+
+function renderDashboard() {
+  const list = document.getElementById('userList');
+  const notLogged = document.getElementById('notLoggedMsg');
+  const welcome = document.getElementById('dashWelcome');
+  document.getElementById('metricTotal').textContent = users.length;
+  document.getElementById('metricTotalBar').style.width = Math.min(users.length * 20, 100) + '%';
+  document.getElementById('userCount').textContent = 'Showing ' + users.length + ' ' + (users.length === 1 ? 'entry' : 'entries');
+  if (!loggedInUser) {
+    welcome.textContent = 'Authentication required to access this interface.';
+    document.getElementById('metricSession').textContent = '—';
+    list.innerHTML = '';
+    notLogged.classList.remove('hidden');
+    return;
+  }
+  notLogged.classList.add('hidden');
+  welcome.textContent = 'Principal operator: ' + loggedInUser.username.toUpperCase();
+  document.getElementById('metricSession').textContent = loggedInUser.username.substring(0,2).toUpperCase();
+  list.innerHTML = '';
+  users.forEach((u, i) => {
+    const initials = u.username.substring(0, 2).toUpperCase();
+    const isCurrentUser = u.email === loggedInUser.email;
+    const card = document.createElement('div');
+    card.className = 'user-card-item group bg-white air-shadow p-base md:p-md rounded-xl border border-black/5 flex justify-between items-center transition-all duration-200 hover:bg-surface-container-low';
+    card.innerHTML = `
+      <div class="flex items-center gap-md">
+        <div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center font-label-sm text-label-sm text-primary border border-outline-variant/10">${initials}</div>
+        <div class="flex flex-col">
+          <span class="font-body-md text-primary font-semibold">${u.username}</span>
+          <span class="font-label-sm text-label-sm text-outline">${u.email}</span>
+        </div>
+      </div>
+      ${isCurrentUser
+        ? `<span class="flex items-center gap-xs px-sm py-xs border border-outline-variant/20 rounded font-label-sm text-label-sm text-outline"><span class="material-symbols-outlined text-[16px]">verified_user</span> Active</span>`
+        : `<button onclick="removeUser(${i})" class="flex items-center gap-xs px-sm py-xs border border-outline-variant/30 rounded font-label-sm text-label-sm text-error hover:bg-error-container/50 transition-colors active:opacity-80"><span class="material-symbols-outlined text-[16px]">delete</span> Remove</button>`
+      }`;
+    list.appendChild(card);
+  });
+}
+
+function removeUser(index) {
+  const cards = document.querySelectorAll('.user-card-item');
+  if (cards[index]) {
+    cards[index].style.transform = 'translateX(20px)';
+    cards[index].style.opacity = '0';
+    setTimeout(() => { users.splice(index, 1); renderDashboard(); }, 300);
+  }
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function clearErrors() {
+  document.querySelectorAll('[id^="err-"]').forEach(el => { el.textContent = ''; el.classList.add('hidden'); });
+}
+
+navigate('register');
+</script>
 </body>
 </html>
