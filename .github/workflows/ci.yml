@@ -1,0 +1,22 @@
+name: CI Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check files exist
+        run: |
+          echo "Checking project files..."
+          test -f index.html && echo "✅ index.html found"
+          test -f css/style.css && echo "✅ style.css found"
+          test -f js/main.js && echo "✅ main.js found"
+          echo "✅ All files present!"
